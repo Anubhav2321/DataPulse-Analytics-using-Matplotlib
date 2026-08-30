@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataPulse - Modern Analytics</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="index-body">
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Analyzing Data... Please Wait</p>
+    </div>
+
+    <!-- Full Screen / Large Card -->
+    <div class="upload-container glass-panel fade-in">
+        <div class="glow-circle"></div>
+        <h1>Data<span class="neon-text">Pulse</span></h1>
+        <p class="subtitle">Drop your CSV or Excel file to generate AI-powered visual insights.</p>
+        
+        <form id="upload-form" action="{% url 'upload_file' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div id="drop-zone" class="drop-zone">
+                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                <p id="drop-text">Drag & Drop file here or <span>Browse</span></p>
+                <input id="file-upload" type="file" name="dataset" accept=".csv, .xlsx, .txt" required />
+            </div>
+            
+            <p id="file-name" class="file-name-display"></p>
+            <button type="submit" class="submit-btn" id="submit-btn" disabled>
+                <i class="fa-solid fa-rocket"></i> GENERATE INSIGHTS
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+        const submitBtn = document.getElementById('submit-btn');
+        const uploadForm = document.getElementById('upload-form');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault(); dropZone.classList.remove('drag-active');
+            if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; updateFileName(); }
+        });
+        fileInput.addEventListener('change', updateFileName);
+
+        function updateFileName() {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.innerHTML = `<i class="fa-solid fa-file-check"></i> Selected: <strong>${fileInput.files[0].name}</strong>`;
+                submitBtn.disabled = false;
+                dropZone.style.borderColor = '#00f2fe';
+            }
+        }
+        uploadForm.addEventListener('submit', () => loadingOverlay.style.display = 'flex');
+    </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataPulse - Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="sidebar glass-panel">
+        <h2 class="logo">Data<span class="neon-text">Pulse</span></h2>
+        <ul class="nav-links">
+            <li><a href="#" class="active"><i class="fa-solid fa-chart-simple"></i> Overview</a></li>
+            <li><a href="#"><i class="fa-solid fa-chart-line"></i> Advanced Analytics</a></li>
+            <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
+        </ul>
+        <a href="{% url 'upload_file' %}" class="upload-btn glass-btn"><i class="fa-solid fa-arrow-left"></i> Upload New File</a>
+    </div>
+
+    <div class="main-content">
+        <header class="top-bar fade-in">
+            <h2>System Overview <span class="file-badge">{{ file_name }}</span></h2>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card glass-panel slide-up" style="animation-delay: 0.1s;">
+                <div class="icon"><i class="fa-solid fa-file-lines"></i></div>
+                <div>
+                    <h3>Total Records</h3>
+                    <p class="counter" data-target="{{ total_rows }}">0</p>
+                </div>
+            </div>
+            <div class="stat-card glass-panel slide-up" style="animation-delay: 0.2s;">
+                <div class="icon"><i class="fa-solid fa-table-columns"></i></div>
+                <div>
+                    <h3>Total Columns</h3>
+                    <p class="counter" data-target="{{ total_cols }}">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            {% if chart3 %}
+            <div class="chart-card glass-panel full-width slide-up" style="animation-delay: 0.3s;">
+                <img src="data:image/png;base64,{{ chart3 }}" alt="Trend Chart">
+            </div>
+            {% endif %}
+            
+            {% if chart1 %}
+            <div class="chart-card glass-panel slide-up" style="animation-delay: 0.4s;">
+                <img src="data:image/png;base64,{{ chart1 }}" alt="Bar Chart">
+            </div>
+            {% endif %}
+
+            {% if chart2 %}
+            <div class="chart-card glass-panel slide-up" style="animation-delay: 0.5s;">
+                <img src="data:image/png;base64,{{ chart2 }}" alt="Pie Chart">
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="table-container glass-panel slide-up" style="animation-delay: 0.6s;">
+            <h3><i class="fa-solid fa-database"></i> Raw Data Preview</h3>
+            <div class="table-wrapper">
+                {{ data_html|safe }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            counter.innerText = '0';
+            const updateCounter = () => {
+                const target = +counter.getAttribute('data-target');
+                const c = +counter.innerText;
+                const increment = target / 20;
+                if (c < target) {
+                    counter.innerText = `${Math.ceil(c + increment)}`;
+                    setTimeout(updateCounter, 30);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCounter();
+        });
+    </script>
+</body>
+</html>
