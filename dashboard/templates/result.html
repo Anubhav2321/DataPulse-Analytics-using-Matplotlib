@@ -3,80 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataPulse - Dashboard</title>
+    <title>DataPulse - Advanced Dashboard</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        .submenu { display: none; list-style: none; padding-left: 20px; margin-top: 5px; animation: fadeIn 0.3s ease; }
+        .submenu li { margin-bottom: 5px; }
+        .submenu a { font-size: 14px; padding: 10px 15px; }
+        .dropdown-arrow { margin-left: auto; transition: transform 0.3s ease; }
+        .rotate-arrow { transform: rotate(180deg); }
+        .menu-open { display: block; }
+    </style>
 </head>
 <body class="dashboard-body">
+    
+    <!-- Sidebar -->
     <div class="sidebar glass-panel">
         <h2 class="logo">Data<span class="neon-text">Pulse</span></h2>
         <ul class="nav-links">
-            <li><a href="#" class="active"><i class="fa-solid fa-chart-simple"></i> Overview</a></li>
-            <li><a href="#"><i class="fa-solid fa-chart-line"></i> Advanced Analytics</a></li>
+            <li><a href="#" onclick="showOverview()" class="active" id="nav-overview"><i class="fa-solid fa-chart-pie"></i> Overview</a></li>
+            
+            <!-- Advanced Analytics Dropdown -->
+            <li>
+                <a href="#" onclick="toggleMenu(event)" id="advanced-btn">
+                    <i class="fa-solid fa-chart-line"></i> Advanced Analytics 
+                    <i class="fa-solid fa-chevron-down dropdown-arrow" id="arrow-icon"></i>
+                </a>
+                <ul class="submenu" id="advanced-menu">
+                    <!-- AI Insights Button -->
+                    <li><a href="#" onclick="showAIInsights()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Insights</a></li>
+                    <li><a href="#" onclick="exportDashboard()"><i class="fa-solid fa-file-pdf"></i> Export Report</a></li>
+                </ul>
+            </li>
+            
             <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
         </ul>
-        <a href="{% url 'upload_file' %}" class="upload-btn glass-btn"><i class="fa-solid fa-arrow-left"></i> Upload New File</a>
+        <div style="flex-grow: 1;"></div>
+        <a href="{% url 'upload_file' %}" class="upload-btn glass-btn"><i class="fa-solid fa-arrow-left"></i> Upload New</a>
     </div>
 
-    <div class="main-content">
+    <!-- Main Content -->
+    <div class="main-content" id="dashboard-content">
         <header class="top-bar fade-in">
-            <h2>System Overview <span class="file-badge">{{ file_name }}</span></h2>
+            <h2 id="page-title">System Overview <span class="file-badge"><i class="fa-solid fa-file-csv"></i> {{ file_name }}</span></h2>
         </header>
 
-        <div class="stats-grid">
-            <div class="stat-card glass-panel slide-up" style="animation-delay: 0.1s;">
-                <div class="icon"><i class="fa-solid fa-file-lines"></i></div>
-                <div>
-                    <h3>Total Records</h3>
-                    <p class="counter" data-target="{{ total_rows }}">0</p>
+        <!-- ================= OVERVIEW VIEW ================= -->
+        <div id="overview-view">
+            <!-- KPI Cards -->
+            <div class="stats-grid">
+                <div class="stat-card glass-panel slide-up" style="animation-delay: 0.1s;">
+                    <div class="icon"><i class="fa-solid fa-database"></i></div>
+                    <div>
+                        <h3>Total Records</h3>
+                        <p class="counter" data-target="{{ total_rows }}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card glass-panel slide-up" style="animation-delay: 0.2s;">
+                    <div class="icon"><i class="fa-solid fa-table-columns"></i></div>
+                    <div>
+                        <h3>Total Columns</h3>
+                        <p class="counter" data-target="{{ total_cols }}">0</p>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card glass-panel slide-up" style="animation-delay: 0.2s;">
-                <div class="icon"><i class="fa-solid fa-table-columns"></i></div>
-                <div>
-                    <h3>Total Columns</h3>
-                    <p class="counter" data-target="{{ total_cols }}">0</p>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <div class="chart-card glass-panel full-width slide-up" style="animation-delay: 0.3s;" id="trend-chart-container"></div>
+                <div class="chart-card glass-panel slide-up" style="animation-delay: 0.4s;" id="bar-chart-container"></div>
+                <div class="chart-card glass-panel slide-up" style="animation-delay: 0.5s;" id="pie-chart-container"></div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-container glass-panel slide-up" style="animation-delay: 0.6s;">
+                <h3><i class="fa-solid fa-table-list"></i> Raw Data Preview</h3>
+                <div class="table-wrapper">
+                    {{ data_html|safe }}
                 </div>
             </div>
         </div>
 
-        <div class="charts-grid">
-            {% if chart3 %}
-            <div class="chart-card glass-panel full-width slide-up" style="animation-delay: 0.3s;">
-                <img src="data:image/png;base64,{{ chart3 }}" alt="Trend Chart">
-            </div>
-            {% endif %}
-            
-            {% if chart1 %}
-            <div class="chart-card glass-panel slide-up" style="animation-delay: 0.4s;">
-                <img src="data:image/png;base64,{{ chart1 }}" alt="Bar Chart">
-            </div>
-            {% endif %}
-
-            {% if chart2 %}
-            <div class="chart-card glass-panel slide-up" style="animation-delay: 0.5s;">
-                <img src="data:image/png;base64,{{ chart2 }}" alt="Pie Chart">
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="table-container glass-panel slide-up" style="animation-delay: 0.6s;">
-            <h3><i class="fa-solid fa-database"></i> Raw Data Preview</h3>
-            <div class="table-wrapper">
-                {{ data_html|safe }}
+        <!-- ================= AI INSIGHTS VIEW (Hidden By Default) ================= -->
+        <div id="ai-insights-view" style="display: none;">
+            <div class="ai-insight-card glass-panel fade-in">
+                <div class="ai-header">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> 
+                    <h3>Smart AI Insights</h3>
+                </div>
+                <p class="ai-text" id="ai-text-container">{{ ai_insights }}</p>
             </div>
         </div>
+        
     </div>
 
     <script>
+        // --- 1. Page Navigation Logic ---
+        function showOverview() {
+            document.getElementById('overview-view').style.display = 'block';
+            document.getElementById('ai-insights-view').style.display = 'none';
+            document.getElementById('page-title').innerHTML = 'System Overview <span class="file-badge"><i class="fa-solid fa-file-csv"></i> {{ file_name }}</span>';
+        }
+
+        function showAIInsights() {
+            document.getElementById('overview-view').style.display = 'none';
+            document.getElementById('ai-insights-view').style.display = 'block';
+            document.getElementById('page-title').innerHTML = 'Advanced AI Insights <span class="file-badge"><i class="fa-solid fa-file-csv"></i> {{ file_name }}</span>';
+        }
+
+        // --- 2. Number Counting Animation ---
         const counters = document.querySelectorAll('.counter');
         counters.forEach(counter => {
             counter.innerText = '0';
             const updateCounter = () => {
                 const target = +counter.getAttribute('data-target');
                 const c = +counter.innerText;
-                const increment = target / 20;
+                const increment = target / 20; 
                 if (c < target) {
                     counter.innerText = `${Math.ceil(c + increment)}`;
                     setTimeout(updateCounter, 30);
@@ -86,6 +133,93 @@
             };
             updateCounter();
         });
+
+        // --- 3. Dropdown Menu Logic ---
+        function toggleMenu(e) {
+            e.preventDefault();
+            const menu = document.getElementById('advanced-menu');
+            const arrow = document.getElementById('arrow-icon');
+            menu.classList.toggle('menu-open');
+            arrow.classList.toggle('rotate-arrow');
+        }
+
+        // --- 4. Basic PDF Export Function ---
+        function exportDashboard() {
+            const element = document.getElementById('dashboard-content');
+            const opt = {
+                margin:       0.5,
+                filename:     'DataPulse_Report.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // --- 5. APEXCHARTS INTEGRATION ---
+        const barData = JSON.parse('{{ bar_data|safe|escapejs }}' || '{"labels":[], "values":[], "title":""}');
+        const pieData = JSON.parse('{{ pie_data|safe|escapejs }}' || '{"labels":[], "values":[], "title":""}');
+        const trendData = JSON.parse('{{ trend_data|safe|escapejs }}' || '{"labels":[], "values":[], "title":""}');
+
+        const commonOptions = {
+            chart: { background: 'transparent', toolbar: { show: false }, animations: { enabled: true, easing: 'easeinout', speed: 800 } },
+            theme: { mode: 'dark' },
+            grid: { borderColor: 'rgba(56, 189, 248, 0.1)', strokeDashArray: 4 },
+            tooltip: { theme: 'dark', style: { fontSize: '14px', fontFamily: 'Inter' }, marker: { show: true } }
+        };
+
+        if (trendData.labels && trendData.labels.length > 0) {
+            const trendOptions = {
+                ...commonOptions,
+                series: [{ name: 'Value', data: trendData.values }],
+                chart: { type: 'area', height: 350 },
+                title: { text: trendData.title, align: 'left', style: { color: '#f8fafc', fontSize: '16px', fontWeight: 'bold' } },
+                colors: ['#ff007c'],
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.1, stops: [0, 90, 100] } },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3 },
+                xaxis: { categories: trendData.labels, labels: { style: { colors: '#94a3b8' } } },
+                yaxis: { labels: { style: { colors: '#94a3b8' }, formatter: (v) => { return v ? v.toLocaleString() : '0' } } }
+            };
+            new ApexCharts(document.querySelector("#trend-chart-container"), trendOptions).render();
+        } else {
+            document.getElementById('trend-chart-container').style.display = 'none';
+        }
+
+        if (barData.labels && barData.labels.length > 0) {
+            const barOptions = {
+                ...commonOptions,
+                series: [{ name: 'Total', data: barData.values }],
+                chart: { type: 'bar', height: 300 },
+                title: { text: barData.title, align: 'left', style: { color: '#f8fafc', fontSize: '16px', fontWeight: 'bold' } },
+                colors: ['#00f2fe'],
+                plotOptions: { bar: { borderRadius: 6, columnWidth: '45%', distributed: true } },
+                dataLabels: { enabled: false },
+                xaxis: { categories: barData.labels, labels: { style: { colors: '#94a3b8' } } },
+                yaxis: { labels: { style: { colors: '#94a3b8' }, formatter: (v) => { return v ? v.toLocaleString() : '0' } } },
+                legend: { show: false }
+            };
+            new ApexCharts(document.querySelector("#bar-chart-container"), barOptions).render();
+        } else {
+             document.getElementById('bar-chart-container').style.display = 'none';
+        }
+
+        if (pieData.labels && pieData.labels.length > 0) {
+            const donutOptions = {
+                ...commonOptions,
+                series: pieData.values,
+                labels: pieData.labels,
+                chart: { type: 'donut', height: 320 },
+                title: { text: pieData.title, align: 'left', style: { color: '#f8fafc', fontSize: '16px', fontWeight: 'bold' } },
+                colors: ['#ff007c', '#00f2fe', '#a855f7', '#facc15', '#10b981'],
+                plotOptions: { pie: { donut: { size: '65%', labels: { show: true, name: { color: '#94a3b8' }, value: { color: '#f8fafc', fontSize: '24px', fontWeight: 'bold' } } } } },
+                stroke: { show: true, colors: ['#0f172a'], width: 2 },
+                legend: { position: 'bottom', labels: { colors: '#94a3b8' } }
+            };
+            new ApexCharts(document.querySelector("#pie-chart-container"), donutOptions).render();
+        } else {
+             document.getElementById('pie-chart-container').style.display = 'none';
+        }
     </script>
 </body>
 </html>
