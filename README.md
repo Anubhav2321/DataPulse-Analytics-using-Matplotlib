@@ -305,3 +305,199 @@ DataPulse-Analytics-using-Matplotlib/
 ├── LICENSE
 └── README.md
 ```
+## 📦 Installation & Setup
+1️⃣ Clone the Repository
+```text
+git clone https://github.com/Anubhav2321/DataPulse-Analytics-using-Matplotlib.git
+cd DataPulse-Analytics-using-Matplotlib
+```
+---
+2️⃣ Create a Virtual Environment
+Windows
+```text
+
+python -m venv venv
+```
+Activate:
+```text
+
+venv\Scripts\activate
+```
+macOS / Linux
+```
+python3 -m venv venv
+```
+Activate:
+```text
+
+source venv/bin/activate
+```
+3️⃣ Install Dependencies
+```
+pip install -r requirements.txt
+```
+▶️ Running the Analytics Pipeline
+
+Run:
+```text
+
+python main.py
+```
+---
+## 🌐 Running the Django Dashboard
+Apply Migrations
+```text
+
+python manage.py makemigrations
+python manage.py migrate
+```
+Start the Development Server
+```text
+
+python manage.py runserver
+```
+
+Open your browser:
+```text
+
+http://127.0.0.1:8000/
+```
+## 📸 Visualization Gallery
+
+
+Once the analytics pipeline has been executed, generated charts can be displayed directly inside this README.
+
+📊 Category Sales
+
+
+📈 Daily Sales Trend
+
+
+🥧 Top Products
+---
+## 👨‍💻 About the Developer
+Anubhav Samanta
+
+- 🎓 BCA Student at Techno India University, West Bengal
+- 💻 Full-Stack Developer
+
+- 🐍 Python Developer
+
+- 📊 Data Analytics & Data Visualization Enthusiast
+
+- 🤖 Interested in Artificial Intelligence & Machine Learning
+
+- 🚀 Passionate about building practical software projects, intelligent applications, and modern web-based systems.
+---
+---
+
+# 👨‍💻 About the Developer
+
+<p align="center">
+
+  <img src="https://img.shields.io/badge/Developer-Anubhav%20Samanta-00C853?style=for-the-badge" />
+
+</p>
+
+<p align="center">
+
+### Anubhav Samanta
+
+🎓 **BCA Student | Techno India University, West Bengal**
+
+💻 **Full-Stack Developer**
+
+🐍 **Python Developer**
+
+📊 **Data Analytics & Data Visualization Enthusiast**
+
+🤖 **Artificial Intelligence & Machine Learning Enthusiast**
+
+🚀 Passionate about building practical software projects,  
+modern web applications, data-driven systems, and intelligent solutions.
+
+</p>
+
+---
+
+# 🔗 Connect With Me
+
+<p align="center">
+
+  <a href="https://github.com/Anubhav2321" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-Anubhav2321-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  </a>
+
+  <a href="https://www.linkedin.com/in/anubhav-samanta-187549379" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-Anubhav%20Samanta-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+  </a>
+
+</p>
+
+---
+
+# 🛠️ Built With
+
+<p align="center">
+
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" />
+  <img src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
+  <img src="https://img.shields.io/badge/Matplotlib-11557C?style=for-the-badge&logo=matplotlib&logoColor=white" />
+  <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white" />
+  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
+  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
+
+</p>
+
+---
+
+# ⭐ Support the Project
+
+If you find **DataPulse Analytics** useful, interesting, or helpful for learning, consider supporting the project:
+
+- ⭐ **Star** the repository
+- 🍴 **Fork** the project
+- 🐛 **Report** bugs or issues
+- 💡 **Suggest** new features
+- 📢 **Share** the project with others
+
+Every star, suggestion, and contribution is greatly appreciated! ❤️
+
+---
+
+# 📄 License
+
+This project is licensed under the **MIT License**.
+
+See the [`LICENSE`](LICENSE) file for more information.
+
+---
+
+# 🚀 Project Credits
+
+<p align="center">
+
+### 📊 DataPulse Analytics
+
+**Designed & Developed by Anubhav Samanta**
+
+Built with ❤️ using **Python, Pandas, NumPy, Matplotlib & Django**
+
+</p>
+
+<p align="center">
+
+<em>
+Turning raw data into meaningful insights through code, visualization, and analytics.
+</em>
+
+</p>
+
+---
+
+<p align="center">
+
+### ⭐ If you like DataPulse Analytics, don't forget to star the repository!
+
+</p>
