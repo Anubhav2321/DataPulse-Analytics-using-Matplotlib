@@ -1072,6 +1072,7 @@ DataPulse can be useful for:
 * Performance trends
 * Statistical projects
 
+
 ### 🔬 Data Science
 
 * Exploratory Data Analysis
