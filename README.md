@@ -176,6 +176,7 @@ DataPulse converts analytical results into meaningful visualizations using Matpl
 * 📌 Category Comparison
 * 📈 Time-Series Analysis
 
+
 ### Example Visualizations
 
 #### Category Sales
