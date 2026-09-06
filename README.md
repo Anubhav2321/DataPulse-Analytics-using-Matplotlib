@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/Django-Web%20Dashboard-092E20?style=for-the-badge&logo=django&logoColor=white" />
 </p>
 
+
 <p align="center">
   <img src="https://img.shields.io/badge/AI-Powered-00F3FF?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Groq-Cloud%20AI-orange?style=for-the-badge" />
