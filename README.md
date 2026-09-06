@@ -1081,6 +1081,7 @@ DataPulse can be useful for:
 * Feature exploration
 * Data visualization
 
+
 ### 🏢 Organizations
 
 * KPI monitoring
