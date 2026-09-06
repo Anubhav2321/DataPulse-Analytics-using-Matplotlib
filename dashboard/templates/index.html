@@ -3,63 +3,1064 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataPulse - Modern Analytics</title>
+
+    <title>DataPulse — AI-Powered Analytics Dashboard</title>
+
+    <meta name="description"
+          content="DataPulse: Enterprise-grade data analytics with AI insights, anomaly detection, and interactive visualizations. Upload your data and unlock hidden patterns.">
+
     {% load static %}
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="index-body">
-    <div id="loading-overlay" class="loading-overlay">
-        <div class="spinner"></div>
-        <p>Analyzing Data... Please Wait</p>
-    </div>
 
-    <!-- Full Screen / Large Card -->
-    <div class="upload-container glass-panel fade-in">
-        <div class="glow-circle"></div>
-        <h1>Data<span class="neon-text">Pulse</span></h1>
-        <p class="subtitle">Drop your CSV or Excel file to generate AI-powered visual insights.</p>
-        
-        <form id="upload-form" action="{% url 'upload_file' %}" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div id="drop-zone" class="drop-zone">
-                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                <p id="drop-text">Drag & Drop file here or <span>Browse</span></p>
-                <input id="file-upload" type="file" name="dataset" accept=".csv, .xlsx, .txt" required />
-            </div>
-            
-            <p id="file-name" class="file-name-display"></p>
-            <button type="submit" class="submit-btn" id="submit-btn" disabled>
-                <i class="fa-solid fa-rocket"></i> GENERATE INSIGHTS
-            </button>
-        </form>
-    </div>
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=20">
 
-    <script>
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-upload');
-        const fileNameDisplay = document.getElementById('file-name');
-        const submitBtn = document.getElementById('submit-btn');
-        const uploadForm = document.getElementById('upload-form');
-        const loadingOverlay = document.getElementById('loading-overlay');
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault(); dropZone.classList.remove('drag-active');
-            if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; updateFileName(); }
-        });
-        fileInput.addEventListener('change', updateFileName);
+    <!-- Upload Card Fix -->
+    <style>
 
-        function updateFileName() {
-            if (fileInput.files.length > 0) {
-                fileNameDisplay.innerHTML = `<i class="fa-solid fa-file-check"></i> Selected: <strong>${fileInput.files[0].name}</strong>`;
-                submitBtn.disabled = false;
-                dropZone.style.borderColor = '#00f2fe';
+        /* =========================================================
+           DATAPULSE UPLOAD CARD FIX
+        ========================================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+
+        body.index-body {
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .landing-wrapper {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+        }
+
+
+        /* =========================================================
+           HERO
+        ========================================================= */
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .hero-logo {
+            margin: 0 0 12px;
+            font-size: clamp(42px, 6vw, 58px);
+            line-height: 1.1;
+        }
+
+        .hero-tagline {
+            max-width: 650px;
+            margin: 0 auto 22px;
+            line-height: 1.6;
+        }
+
+        .feature-badges {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+
+        /* =========================================================
+           UPLOAD CONTAINER
+        ========================================================= */
+
+        .upload-container {
+            position: relative;
+
+            width: 100%;
+            max-width: 800px;
+
+            min-height: 430px;
+
+            margin: 0 auto 28px;
+
+            padding: 38px 40px 34px;
+
+            border-radius: 28px;
+
+            overflow: hidden;
+
+            text-align: center;
+
+            isolation: isolate;
+        }
+
+
+        /* Make sure decorative glow stays behind content */
+
+        .upload-container .glow-circle,
+        .upload-container .glow-circle-2 {
+            pointer-events: none;
+            z-index: -1;
+        }
+
+
+        /* =========================================================
+           UPLOAD TITLE
+        ========================================================= */
+
+        .upload-container h2 {
+            position: relative;
+            z-index: 2;
+
+            margin: 0 0 8px;
+
+            font-size: 23px;
+            line-height: 1.3;
+        }
+
+        .upload-subtitle {
+            position: relative;
+            z-index: 2;
+
+            margin: 0 0 24px;
+
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+
+        /* =========================================================
+           DROP ZONE
+        ========================================================= */
+
+        #drop-zone {
+            position: relative;
+            z-index: 3;
+
+            width: 100%;
+
+            min-height: 205px;
+
+            padding: 30px 25px;
+
+            border: 2px dashed rgba(168, 85, 247, 0.65);
+
+            border-radius: 20px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            cursor: pointer;
+
+            transition:
+                border-color 0.25s ease,
+                background 0.25s ease,
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+
+        #drop-zone:hover {
+            border-color: #a855f7;
+
+            background: rgba(168, 85, 247, 0.06);
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 0 30px rgba(168, 85, 247, 0.12);
+        }
+
+
+        #drop-zone.drag-active {
+            border-color: #22c55e;
+
+            background: rgba(34, 197, 94, 0.07);
+
+            transform: scale(1.01);
+
+            box-shadow:
+                0 0 35px rgba(34, 197, 94, 0.15);
+        }
+
+
+        /* =========================================================
+           UPLOAD ICON
+        ========================================================= */
+
+        .upload-icon {
+            font-size: 48px;
+
+            margin-bottom: 15px;
+
+            color: var(--neon-accent, #a855f7);
+
+            filter:
+                drop-shadow(
+                    0 0 12px
+                    rgba(168, 85, 247, 0.35)
+                );
+        }
+
+
+        /* =========================================================
+           DROP TEXT
+        ========================================================= */
+
+        #drop-text {
+            margin: 0;
+
+            font-size: 15px;
+
+            line-height: 1.5;
+        }
+
+        #drop-text span {
+            color: var(--neon-accent, #a855f7);
+
+            font-weight: 700;
+
+            text-decoration: underline;
+
+            text-underline-offset: 3px;
+        }
+
+
+        /* =========================================================
+           FILE TYPE BADGES
+        ========================================================= */
+
+        .file-type-badges {
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 8px;
+
+            margin-top: 18px;
+
+            flex-wrap: wrap;
+        }
+
+        .file-type-badge {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-width: 52px;
+
+            height: 28px;
+
+            padding: 0 10px;
+
+            border-radius: 8px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.5px;
+
+            color: #94a3b8;
+
+            background: rgba(15, 23, 42, 0.65);
+
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+
+        /* =========================================================
+           HIDDEN FILE INPUT
+        ========================================================= */
+
+        #file-upload {
+            display: none;
+        }
+
+
+        /* =========================================================
+           FILE NAME
+        ========================================================= */
+
+        .file-name-display {
+            position: relative;
+            z-index: 3;
+
+            min-height: 22px;
+
+            margin: 14px 0 12px;
+
+            font-size: 13px;
+
+            color: #22c55e;
+
+            word-break: break-word;
+        }
+
+
+        /* =========================================================
+           SUBMIT BUTTON
+        ========================================================= */
+
+        .submit-btn {
+            position: relative;
+            z-index: 3;
+
+            width: 100%;
+
+            max-width: 420px;
+
+            min-height: 52px;
+
+            margin: 0 auto;
+
+            border: none;
+
+            border-radius: 13px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 10px;
+
+            font-size: 14px;
+
+            font-weight: 800;
+
+            letter-spacing: 0.5px;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+
+        .submit-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 30px
+                rgba(168, 85, 247, 0.22);
+        }
+
+
+        .submit-btn:disabled {
+            opacity: 0.45;
+
+            cursor: not-allowed;
+
+            transform: none;
+
+            box-shadow: none;
+        }
+
+
+        /* =========================================================
+           FEATURES GRID
+        ========================================================= */
+
+        .features-grid {
+            position: relative;
+            z-index: 2;
+
+            width: 100%;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+
+            gap: 14px;
+
+            margin-top: 0;
+        }
+
+
+        .feature-card {
+            min-height: 185px;
+
+            padding: 24px 20px;
+
+            border-radius: 20px;
+
+            text-align: center;
+        }
+
+
+        .feature-card h4 {
+            margin: 12px 0 6px;
+
+            font-size: 15px;
+        }
+
+
+        .feature-card p {
+            margin: 0;
+
+            font-size: 12px;
+
+            line-height: 1.55;
+        }
+
+
+        /* =========================================================
+           MOBILE RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 768px) {
+
+            .landing-wrapper {
+                padding: 30px 15px 45px;
+            }
+
+            .hero-section {
+                margin-bottom: 28px;
+            }
+
+            .hero-logo {
+                font-size: 42px;
+            }
+
+            .hero-tagline {
+                font-size: 13px;
+                padding: 0 8px;
+            }
+
+            .upload-container {
+                min-height: auto;
+
+                padding:
+                    28px 18px 26px;
+
+                border-radius: 22px;
+
+                margin-bottom: 22px;
+            }
+
+            .upload-container h2 {
+                font-size: 20px;
+            }
+
+            .upload-subtitle {
+                font-size: 12px;
+
+                margin-bottom: 20px;
+            }
+
+            #drop-zone {
+                min-height: 185px;
+
+                padding:
+                    25px 15px;
+
+                border-radius: 17px;
+            }
+
+            .upload-icon {
+                font-size: 42px;
+            }
+
+            #drop-text {
+                font-size: 13px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+
+                gap: 12px;
+            }
+
+            .feature-card {
+                min-height: auto;
+
+                padding: 22px 18px;
             }
         }
-        uploadForm.addEventListener('submit', () => loadingOverlay.style.display = 'flex');
+
+
+        /* =========================================================
+           SMALL MOBILE
+        ========================================================= */
+
+        @media (max-width: 480px) {
+
+            .landing-wrapper {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .hero-logo {
+                font-size: 36px;
+            }
+
+            .feature-badge {
+                font-size: 10px;
+            }
+
+            .upload-container {
+                padding:
+                    24px 14px 22px;
+            }
+
+            #drop-zone {
+                min-height: 175px;
+            }
+
+            .submit-btn {
+                min-height: 48px;
+
+                font-size: 12px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body class="index-body">
+
+    <!-- =========================================================
+         LOADING OVERLAY
+    ========================================================= -->
+
+    <div id="loading-overlay" class="loading-overlay">
+
+        <div class="scan-line"></div>
+
+        <div class="spinner-wrapper">
+            <div class="spinner"></div>
+            <div class="spinner-inner"></div>
+        </div>
+
+        <p>Processing Data Matrix...</p>
+
+    </div>
+
+
+    <div class="landing-wrapper">
+
+
+        <!-- =====================================================
+             HERO SECTION
+        ===================================================== -->
+
+        <section class="hero-section fade-in">
+
+            <h1 class="hero-logo">
+
+                Data<span class="neon-text">Pulse</span><span
+                    class="pulse-dot"></span>
+
+            </h1>
+
+
+            <p class="hero-tagline">
+                Enterprise-grade analytics engine powered by AI.
+                Upload your dataset and unlock hidden patterns,
+                anomalies, and actionable forecasts in seconds.
+            </p>
+
+
+            <div class="feature-badges">
+
+                <span class="feature-badge badge-ai">
+                    <i class="fa-solid fa-brain"></i>
+                    AI Analytics
+                </span>
+
+
+                <span class="feature-badge badge-charts">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Instant Charts
+                </span>
+
+
+                <span class="feature-badge badge-secure">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Privacy Mode
+                </span>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             UPLOAD DATASET CARD
+        ===================================================== -->
+
+        <div class="upload-container glass-panel">
+
+            <div class="glow-circle"></div>
+            <div class="glow-circle-2"></div>
+
+
+            <h2>
+
+                <i class="fa-solid fa-cloud-arrow-up"
+                   style="
+                   color: var(--neon-accent);
+                   margin-right: 8px;
+                   ">
+                </i>
+
+                Upload Dataset
+
+            </h2>
+
+
+            <p class="upload-subtitle">
+                Drag & drop or browse.
+                Supports CSV, XLSX, and TXT files.
+            </p>
+
+
+
+            <!-- =================================================
+                 UPLOAD FORM
+            ================================================= -->
+
+            <form
+                id="upload-form"
+                action="{% url 'upload_file' %}"
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                {% csrf_token %}
+
+
+                <!-- DROP ZONE -->
+
+                <div
+                    id="drop-zone"
+                    class="drop-zone"
+                >
+
+                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+
+
+                    <p id="drop-text">
+
+                        Drag & Drop file here or
+
+                        <span>
+                            Browse Files
+                        </span>
+
+                    </p>
+
+
+                    <!-- FILE TYPE -->
+
+                    <div class="file-type-badges">
+
+                        <span class="file-type-badge">
+                            .CSV
+                        </span>
+
+                        <span class="file-type-badge">
+                            .XLSX
+                        </span>
+
+                        <span class="file-type-badge">
+                            .TXT
+                        </span>
+
+                    </div>
+
+
+                    <!-- ACTUAL FILE INPUT -->
+
+                    <input
+                        id="file-upload"
+                        type="file"
+                        name="dataset"
+                        accept=".csv,.xlsx,.txt"
+                        required
+                    />
+
+                </div>
+
+
+
+                <!-- FILE NAME -->
+
+                <p
+                    id="file-name"
+                    class="file-name-display"
+                ></p>
+
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    type="submit"
+                    class="submit-btn"
+                    id="submit-btn"
+                    disabled
+                >
+
+                    <i class="fa-solid fa-rocket"></i>
+
+                    GENERATE INSIGHTS
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             FEATURE CARDS
+        ===================================================== -->
+
+        <div class="features-grid">
+
+
+            <!-- STATISTICS -->
+
+            <div
+                class="feature-card glass-panel slide-up"
+                style="animation-delay: 0.2s;"
+            >
+
+                <div class="icon-circle purple">
+
+                    <i class="fa-solid fa-microchip"></i>
+
+                </div>
+
+
+                <h4>
+                    Statistics Engine
+                </h4>
+
+
+                <p>
+                    Z-Score anomaly detection,
+                    correlation matrices, and KPI
+                    metrics computed instantly.
+                </p>
+
+            </div>
+
+
+
+            <!-- AI -->
+
+            <div
+                class="feature-card glass-panel slide-up"
+                style="animation-delay: 0.35s;"
+            >
+
+                <div class="icon-circle blue">
+
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+                </div>
+
+
+                <h4>
+                    AI Insights
+                </h4>
+
+
+                <p>
+                    Groq-powered forecasts with
+                    executive summaries and risk
+                    detection reports.
+                </p>
+
+            </div>
+
+
+
+            <!-- EXPORT -->
+
+            <div
+                class="feature-card glass-panel slide-up"
+                style="animation-delay: 0.5s;"
+            >
+
+                <div class="icon-circle green">
+
+                    <i class="fa-solid fa-file-export"></i>
+
+                </div>
+
+
+                <h4>
+                    Export Reports
+                </h4>
+
+
+                <p>
+                    Modular PDF export with selective
+                    sections — charts, data, and
+                    summaries.
+                </p>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================= -->
+
+    <script>
+
+        /* =====================================================
+           ELEMENTS
+        ===================================================== */
+
+        const dropZone =
+            document.getElementById('drop-zone');
+
+        const fileInput =
+            document.getElementById('file-upload');
+
+        const fileNameDisplay =
+            document.getElementById('file-name');
+
+        const submitBtn =
+            document.getElementById('submit-btn');
+
+        const uploadForm =
+            document.getElementById('upload-form');
+
+        const loadingOverlay =
+            document.getElementById('loading-overlay');
+
+
+
+        /* =====================================================
+           CLICK TO BROWSE
+        ===================================================== */
+
+        dropZone.addEventListener('click', function () {
+
+            fileInput.click();
+
+        });
+
+
+
+        /* =====================================================
+           DRAG OVER
+        ===================================================== */
+
+        dropZone.addEventListener('dragover', function (e) {
+
+            e.preventDefault();
+
+            dropZone.classList.add('drag-active');
+
+        });
+
+
+
+        /* =====================================================
+           DRAG LEAVE
+        ===================================================== */
+
+        dropZone.addEventListener('dragleave', function () {
+
+            dropZone.classList.remove('drag-active');
+
+        });
+
+
+
+        /* =====================================================
+           DROP FILE
+        ===================================================== */
+
+        dropZone.addEventListener('drop', function (e) {
+
+            e.preventDefault();
+
+            dropZone.classList.remove('drag-active');
+
+
+            if (e.dataTransfer.files.length > 0) {
+
+                fileInput.files =
+                    e.dataTransfer.files;
+
+                updateFileName();
+
+            }
+
+        });
+
+
+
+        /* =====================================================
+           FILE INPUT CHANGE
+        ===================================================== */
+
+        fileInput.addEventListener(
+            'change',
+            updateFileName
+        );
+
+
+
+        /* =====================================================
+           UPDATE FILE NAME
+        ===================================================== */
+
+        function updateFileName() {
+
+            if (fileInput.files.length > 0) {
+
+                const file =
+                    fileInput.files[0];
+
+
+                const sizeMB =
+                    (
+                        file.size /
+                        (1024 * 1024)
+                    ).toFixed(2);
+
+
+                fileNameDisplay.innerHTML = `
+
+                    <i class="fa-solid fa-file-circle-check"></i>
+
+                    ${file.name}
+
+                    <span
+                        style="
+                        color: var(--text-dim);
+                        font-size: 12px;
+                        "
+                    >
+                        (${sizeMB} MB)
+                    </span>
+
+                `;
+
+
+                /* Enable button */
+
+                submitBtn.disabled = false;
+
+
+                /* Change drop zone */
+
+                dropZone.style.borderColor =
+                    'var(--neon-green)';
+
+
+                dropZone.style.background =
+                    'rgba(16, 185, 129, 0.04)';
+
+            }
+
+        }
+
+
+
+        /* =====================================================
+           SHOW LOADING ON SUBMIT
+        ===================================================== */
+
+        uploadForm.addEventListener(
+            'submit',
+            function () {
+
+                loadingOverlay.style.display =
+                    'flex';
+
+            }
+        );
+
+
+
+        /* =====================================================
+           APPLY SAVED THEME
+        ===================================================== */
+
+        (function () {
+
+            const savedTheme =
+                localStorage.getItem(
+                    'datapulse_theme'
+                );
+
+
+            if (savedTheme) {
+
+                try {
+
+                    const theme =
+                        JSON.parse(savedTheme);
+
+
+                    if (theme.accent) {
+
+                        document.documentElement.style.setProperty(
+                            '--neon-accent',
+                            theme.accent
+                        );
+
+
+                        document.documentElement.style.setProperty(
+                            '--neon-accent-glow',
+                            theme.glow ||
+                            theme.accent + '99'
+                        );
+
+                    }
+
+                }
+
+                catch (e) {
+
+                    console.log(
+                        'Theme loading skipped.'
+                    );
+
+                }
+
+            }
+
+        })();
+
     </script>
+
 </body>
 </html>

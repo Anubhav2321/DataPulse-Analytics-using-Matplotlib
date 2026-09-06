@@ -3,72 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataPulse - Advanced Dashboard</title>
+    <title>DataPulse — Dashboard</title>
+    <meta name="description" content="DataPulse Analytics Dashboard: Interactive charts, AI insights, anomaly detection, and What-If simulations.">
     {% load static %}
-    <link rel="stylesheet" href="{% static 'style.css' %}?v=5">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=10">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <style>
-        .submenu { display: none; list-style: none; padding-left: 20px; margin-top: 5px; animation: fadeIn 0.3s ease; }
-        .submenu li { margin-bottom: 5px; }
-        .submenu a { font-size: 14px; padding: 10px 15px; }
-        .dropdown-arrow { margin-left: auto; transition: transform 0.3s ease; }
-        .rotate-arrow { transform: rotate(180deg); }
-        .menu-open { display: block; }
-    </style>
 </head>
 <body class="dashboard-body">
-    
-    <!-- Sidebar -->
+
+    <!-- ═══════════════ SIDEBAR ═══════════════ -->
     <div class="sidebar glass-panel">
         <h2 class="logo">Data<span class="neon-text">Pulse</span></h2>
         <ul class="nav-links">
-            <li><a href="#" onclick="showOverview()" class="active" id="nav-overview"><i class="fa-solid fa-chart-pie"></i> Overview</a></li>
-            
-            <!-- Advanced Analytics Dropdown -->
+            <li>
+                <a href="#" onclick="showView('overview', this)" class="active" id="nav-overview">
+                    <i class="fa-solid fa-chart-pie"></i> Overview
+                </a>
+            </li>
             <li>
                 <a href="#" onclick="toggleMenu(event)" id="advanced-btn">
-                    <i class="fa-solid fa-chart-line"></i> Advanced Analytics 
+                    <i class="fa-solid fa-flask"></i> Advanced Analytics
                     <i class="fa-solid fa-chevron-down dropdown-arrow" id="arrow-icon"></i>
                 </a>
                 <ul class="submenu" id="advanced-menu">
-                    <!-- AI Insights Button -->
-                    <li><a href="#" onclick="showAIInsights()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Insights</a></li>
-                    <li><a href="#" onclick="exportDashboard()"><i class="fa-solid fa-file-pdf"></i> Export Report</a></li>
+                    <li><a href="#" onclick="showView('whatif', this)"><i class="fa-solid fa-sliders"></i> What-If Simulator</a></li>
+                    <li><a href="#" onclick="showView('anomaly', this)"><i class="fa-solid fa-triangle-exclamation"></i> Anomaly Detection</a></li>
+                    <li><a href="#" onclick="showView('correlation', this)"><i class="fa-solid fa-diagram-project"></i> Correlation Map</a></li>
+                    <li><a href="#" onclick="showView('askdata', this)"><i class="fa-solid fa-magnifying-glass-chart"></i> Ask Data</a></li>
                 </ul>
             </li>
-            
-            <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
+            <li>
+                <a href="#" onclick="showView('aiinsights', this)" id="nav-ai">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI Insights
+                </a>
+            </li>
+            <li>
+                <a href="#" onclick="showView('settings', this)" id="nav-settings">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </a>
+            </li>
         </ul>
         <div style="flex-grow: 1;"></div>
-        <a href="{% url 'upload_file' %}" class="upload-btn glass-btn"><i class="fa-solid fa-arrow-left"></i> Upload New</a>
+        <a href="{% url 'upload_file' %}" class="glass-btn"><i class="fa-solid fa-arrow-left"></i> Upload New</a>
     </div>
 
-    <!-- Main Content -->
+
+    <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
     <div class="main-content" id="dashboard-content">
         <header class="top-bar fade-in">
-            <h2 id="page-title">System Overview <span class="file-badge"><i class="fa-solid fa-file-csv"></i> {{ file_name }}</span></h2>
+            <h2 id="page-title">
+                System Overview
+                <span class="file-badge"><i class="fa-solid fa-file-csv"></i> {{ file_name }}</span>
+            </h2>
+            <div class="ai-mode-indicator mode-local" id="ai-mode-badge">
+                <i class="fa-solid fa-microchip"></i> <span id="ai-mode-label">Local Math</span>
+            </div>
         </header>
 
-        <!-- ================= OVERVIEW VIEW ================= -->
-        <div id="overview-view">
+        <!-- ══════════════════════════════════════════
+             VIEW 1: OVERVIEW
+             ══════════════════════════════════════════ -->
+        <div id="view-overview" class="view-panel active">
+
             <!-- KPI Cards -->
             <div class="stats-grid">
-                <div class="stat-card glass-panel slide-up" style="animation-delay: 0.1s;">
+                <div class="stat-card glass-panel slide-up" style="animation-delay: 0.1s;" id="kpi-records">
                     <div class="icon"><i class="fa-solid fa-database"></i></div>
                     <div>
                         <h3>Total Records</h3>
-                        <p class="counter" data-target="{{ total_rows }}">0</p>
+                        <p class="stat-value counter" data-target="{{ total_rows }}">0</p>
                     </div>
                 </div>
-                <div class="stat-card glass-panel slide-up" style="animation-delay: 0.2s;">
-                    <div class="icon"><i class="fa-solid fa-table-columns"></i></div>
+                <div class="stat-card glass-panel slide-up" style="animation-delay: 0.15s;" id="kpi-columns">
+                    <div class="icon blue"><i class="fa-solid fa-table-columns"></i></div>
                     <div>
                         <h3>Total Columns</h3>
-                        <p class="counter" data-target="{{ total_cols }}">0</p>
+                        <p class="stat-value counter" data-target="{{ total_cols }}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card glass-panel slide-up" style="animation-delay: 0.2s;" id="kpi-sum">
+                    <div class="icon cyan"><i class="fa-solid fa-sigma"></i></div>
+                    <div>
+                        <h3>Total Sum</h3>
+                        <p class="stat-value" id="kpi-sum-value">—</p>
+                    </div>
+                </div>
+                <div class="stat-card glass-panel slide-up" style="animation-delay: 0.25s;" id="kpi-avg">
+                    <div class="icon pink"><i class="fa-solid fa-chart-line"></i></div>
+                    <div>
+                        <h3>Average</h3>
+                        <p class="stat-value" id="kpi-avg-value">—</p>
                     </div>
                 </div>
             </div>
@@ -76,12 +102,12 @@
             <!-- Charts Grid -->
             <div class="charts-grid">
                 <div class="chart-card glass-panel full-width slide-up" style="animation-delay: 0.3s;" id="trend-chart-container"></div>
-                <div class="chart-card glass-panel slide-up" style="animation-delay: 0.4s;" id="bar-chart-container"></div>
-                <div class="chart-card glass-panel slide-up" style="animation-delay: 0.5s;" id="pie-chart-container"></div>
+                <div class="chart-card glass-panel slide-up" style="animation-delay: 0.35s;" id="bar-chart-container"></div>
+                <div class="chart-card glass-panel slide-up" style="animation-delay: 0.4s;" id="pie-chart-container"></div>
             </div>
 
             <!-- Data Table -->
-            <div class="table-container glass-panel slide-up" style="animation-delay: 0.6s;">
+            <div class="table-container glass-panel slide-up" style="animation-delay: 0.45s;" id="data-table-section">
                 <h3><i class="fa-solid fa-table-list"></i> Raw Data Preview</h3>
                 <div class="table-wrapper">
                     {{ data_html|safe }}
@@ -89,138 +115,305 @@
             </div>
         </div>
 
-        <!-- ================= AI INSIGHTS VIEW (Hidden By Default) ================= -->
-        <div id="ai-insights-view" style="display: none;">
-            <div class="ai-insight-card glass-panel fade-in">
-                <div class="ai-header">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> 
-                    <h3>Smart AI Insights</h3>
+
+        <!-- ══════════════════════════════════════════
+             VIEW 2A: WHAT-IF SIMULATOR
+             ══════════════════════════════════════════ -->
+        <div id="view-whatif" class="view-panel">
+            <div class="analytics-section">
+                <div class="section-header">
+                    <i class="fa-solid fa-sliders"></i>
+                    <h3>What-If Scenario Simulator</h3>
+                    <span class="section-badge">Interactive</span>
                 </div>
-                <!-- Changed to safe filter below -->
-                <p class="ai-text" id="ai-text-container">{{ ai_insights|safe }}</p>
+
+                <div class="whatif-controls">
+                    <div class="control-group">
+                        <label>Target Column</label>
+                        <select id="whatif-column"></select>
+                    </div>
+                    <div class="control-group">
+                        <label>Operation</label>
+                        <select id="whatif-operation">
+                            <option value="increase_pct">Increase by %</option>
+                            <option value="decrease_pct">Decrease by %</option>
+                            <option value="multiply">Multiply by</option>
+                            <option value="add">Add Value</option>
+                            <option value="set">Set to Value</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Value</label>
+                        <input type="number" id="whatif-value-input" value="10" min="0" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" id="whatif-run-btn" onclick="runWhatIf()">
+                            <i class="fa-solid fa-play"></i> Simulate
+                        </button>
+                    </div>
+                </div>
+
+                <div class="slider-container">
+                    <input type="range" id="whatif-slider" min="0" max="100" value="10">
+                    <div class="slider-value" id="whatif-slider-label">10%</div>
+                </div>
+
+                <!-- Comparison Cards (hidden until simulation) -->
+                <div id="whatif-comparison" style="display: none;">
+                    <div class="comparison-grid">
+                        <div class="comparison-card glass-panel">
+                            <div class="label">Original Total</div>
+                            <div class="value" id="whatif-original">—</div>
+                        </div>
+                        <div class="comparison-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                        <div class="comparison-card glass-panel">
+                            <div class="label">Projected Total</div>
+                            <div class="value" id="whatif-projected">—</div>
+                        </div>
+                    </div>
+                    <div class="forecast-card" id="whatif-forecast" style="display: none;">
+                        <div class="forecast-label"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Forecast</div>
+                        <p id="whatif-forecast-text"></p>
+                    </div>
+                </div>
+
+                <!-- What-If Charts -->
+                <div class="charts-grid" id="whatif-charts" style="display: none;">
+                    <div class="chart-card glass-panel" id="whatif-bar-container"></div>
+                    <div class="chart-card glass-panel" id="whatif-pie-container"></div>
+                </div>
             </div>
         </div>
-        
+
+
+        <!-- ══════════════════════════════════════════
+             VIEW 2B: ANOMALY DETECTION
+             ══════════════════════════════════════════ -->
+        <div id="view-anomaly" class="view-panel">
+            <div class="analytics-section">
+                <div class="section-header">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <h3>Smart Anomaly Detection</h3>
+                    <span class="section-badge">Z-Score Analysis</span>
+                </div>
+
+                <div class="anomaly-summary" id="anomaly-summary"></div>
+
+                <div class="chart-card glass-panel" id="anomaly-scatter-container" style="min-height: 350px;"></div>
+            </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════
+             VIEW 2C: CORRELATION HEATMAP
+             ══════════════════════════════════════════ -->
+        <div id="view-correlation" class="view-panel">
+            <div class="analytics-section">
+                <div class="section-header">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <h3>Hidden Correlation Heatmap</h3>
+                    <span class="section-badge">Pearson Matrix</span>
+                </div>
+
+                <div class="chart-card glass-panel" id="heatmap-container" style="min-height: 350px;"></div>
+
+                <div class="correlation-summary" id="corr-summary-card">
+                    <p id="corr-summary-text">{{ corr_summary_local|safe }}</p>
+                    <button class="btn btn-ghost btn-sm" id="corr-ai-btn" onclick="fetchAICorrelationSummary()" style="margin-top: 12px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Get AI Summary
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════
+             VIEW 2D: ASK DATA
+             ══════════════════════════════════════════ -->
+        <div id="view-askdata" class="view-panel">
+            <div class="analytics-section">
+                <div class="section-header">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i>
+                    <h3>Natural Language Query</h3>
+                    <span class="section-badge">Ask Data</span>
+                </div>
+
+                <div class="ask-data-bar">
+                    <i class="fa-solid fa-terminal search-icon"></i>
+                    <input type="text" class="ask-data-input" id="ask-data-input" 
+                           placeholder="Ask anything... e.g. 'What is the total revenue?'"
+                           onkeydown="if(event.key==='Enter') askData()">
+                    <button class="send-btn" onclick="askData()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+
+                <div class="query-chips" id="query-chips">
+                    <span class="query-chip" onclick="setQuery('What is the total?')">Total sum</span>
+                    <span class="query-chip" onclick="setQuery('What is the average?')">Average</span>
+                    <span class="query-chip" onclick="setQuery('What is the maximum?')">Maximum</span>
+                    <span class="query-chip" onclick="setQuery('What is the minimum?')">Minimum</span>
+                    <span class="query-chip" onclick="setQuery('How many rows?')">Count rows</span>
+                    <span class="query-chip" onclick="setQuery('What is the median?')">Median</span>
+                </div>
+
+                <div id="ask-data-result"></div>
+            </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════
+             VIEW 3: AI INSIGHTS
+             ══════════════════════════════════════════ -->
+        <div id="view-aiinsights" class="view-panel">
+            <div class="ai-insight-card glass-panel fade-in">
+                <div class="ai-header">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <h3>Smart AI Insights</h3>
+                </div>
+                <div class="ai-text" id="ai-text-container">{{ ai_insights|safe }}</div>
+            </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════
+             VIEW 4: SETTINGS
+             ══════════════════════════════════════════ -->
+        <div id="view-settings" class="view-panel">
+            <div class="settings-grid">
+
+                <!-- AI Toggle -->
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-shield-halved"></i> Privacy & AI Mode</h4>
+                    <p class="desc">Toggle between Local Math Mode (zero external API calls) and Cloud AI Mode (Groq-powered insights).</p>
+                    <div class="toggle-switch-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="ai-mode-toggle" onchange="toggleAIMode()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label" id="ai-toggle-label">
+                            <i class="fa-solid fa-microchip"></i> <strong>Local Math Mode</strong> — Data stays private
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Theme Customizer -->
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-palette"></i> Theme Accent Color</h4>
+                    <p class="desc">Customize the dashboard's neon accent. Saved automatically.</p>
+                    <div class="color-picker-grid" id="color-picker">
+                        <div class="color-swatch active" data-color="#a855f7" data-glow="rgba(168,85,247,0.6)" style="background: #a855f7;" title="Cyber Purple" onclick="setTheme(this)"></div>
+                        <div class="color-swatch" data-color="#10b981" data-glow="rgba(16,185,129,0.6)" style="background: #10b981;" title="Matrix Green" onclick="setTheme(this)"></div>
+                        <div class="color-swatch" data-color="#f97316" data-glow="rgba(249,115,22,0.6)" style="background: #f97316;" title="Cyber Orange" onclick="setTheme(this)"></div>
+                        <div class="color-swatch" data-color="#38bdf8" data-glow="rgba(56,189,248,0.6)" style="background: #38bdf8;" title="Electric Blue" onclick="setTheme(this)"></div>
+                        <div class="color-swatch" data-color="#ec4899" data-glow="rgba(236,72,153,0.6)" style="background: #ec4899;" title="Plasma Pink" onclick="setTheme(this)"></div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="resetTheme()">
+                        <i class="fa-solid fa-rotate-left"></i> Reset to Default
+                    </button>
+                </div>
+
+                <!-- KPI Thresholds -->
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-bell"></i> KPI Threshold Alerts</h4>
+                    <p class="desc">Set limits for your primary metric. KPI cards will pulse with neon alerts if thresholds are violated.</p>
+                    <div class="threshold-inputs">
+                        <div>
+                            <label>Min Threshold</label>
+                            <input type="number" id="threshold-min" placeholder="e.g. 1000" onchange="saveThresholds()">
+                        </div>
+                        <div>
+                            <label>Max Threshold</label>
+                            <input type="number" id="threshold-max" placeholder="e.g. 50000" onchange="saveThresholds()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF Export -->
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-file-pdf"></i> Modular PDF Export</h4>
+                    <p class="desc">Choose exactly what to include in your report. Generate a clean, print-ready PDF document.</p>
+                    <button class="btn btn-primary btn-full" onclick="openExportModal()">
+                        <i class="fa-solid fa-download"></i> Configure & Export PDF
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </div><!-- end main-content -->
+
+
+    <!-- ═══════════════ PDF EXPORT MODAL ═══════════════ -->
+    <div class="modal-overlay" id="export-modal">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-file-export"></i> Export Report</h3>
+            <p class="modal-subtitle">Select sections to include in your PDF report.</p>
+
+            <div class="export-options">
+                <label class="export-option">
+                    <input type="checkbox" id="exp-summary" checked> <span>Executive AI Summary</span>
+                </label>
+                <label class="export-option">
+                    <input type="checkbox" id="exp-kpi" checked> <span>KPI Metrics Cards</span>
+                </label>
+                <label class="export-option">
+                    <input type="checkbox" id="exp-trend" checked> <span>Trend Chart</span>
+                </label>
+                <label class="export-option">
+                    <input type="checkbox" id="exp-bar" checked> <span>Bar Chart</span>
+                </label>
+                <label class="export-option">
+                    <input type="checkbox" id="exp-pie" checked> <span>Pie / Donut Chart</span>
+                </label>
+                <label class="export-option">
+                    <input type="checkbox" id="exp-anomaly"> <span>Anomaly Detection Report</span>
+                </label>
+                <label class="export-option">
+                    <input type="checkbox" id="exp-correlation"> <span>Correlation Heatmap</span>
+                </label>
+                <label class="export-option">
+                    <input type="checkbox" id="exp-table"> <span>Raw Data Table</span>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="generatePDF()">
+                    <i class="fa-solid fa-download"></i> Generate PDF
+                </button>
+                <button class="btn btn-secondary" onclick="closeExportModal()">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
+            </div>
+        </div>
     </div>
 
+
+    <!-- ═══════════════ EMBEDDED DATA (from Django) ═══════════════ -->
     <script>
-        // --- 1. Page Navigation Logic ---
-        function showOverview() {
-            document.getElementById('overview-view').style.display = 'block';
-            document.getElementById('ai-insights-view').style.display = 'none';
-            document.getElementById('page-title').innerHTML = 'System Overview <span class="file-badge"><i class="fa-solid fa-file-csv"></i> {{ file_name }}</span>';
-        }
-
-        function showAIInsights() {
-            document.getElementById('overview-view').style.display = 'none';
-            document.getElementById('ai-insights-view').style.display = 'block';
-            document.getElementById('page-title').innerHTML = 'Advanced AI Insights <span class="file-badge"><i class="fa-solid fa-file-csv"></i> {{ file_name }}</span>';
-        }
-
-        // --- 2. Number Counting Animation ---
-        const counters = document.querySelectorAll('.counter');
-        counters.forEach(counter => {
-            counter.innerText = '0';
-            const updateCounter = () => {
-                const target = +counter.getAttribute('data-target');
-                const c = +counter.innerText;
-                const increment = target / 20; 
-                if (c < target) {
-                    counter.innerText = `${Math.ceil(c + increment)}`;
-                    setTimeout(updateCounter, 30);
-                } else {
-                    counter.innerText = target;
-                }
-            };
-            updateCounter();
-        });
-
-        // --- 3. Dropdown Menu Logic ---
-        function toggleMenu(e) {
-            e.preventDefault();
-            const menu = document.getElementById('advanced-menu');
-            const arrow = document.getElementById('arrow-icon');
-            menu.classList.toggle('menu-open');
-            arrow.classList.toggle('rotate-arrow');
-        }
-
-        // --- 4. Basic PDF Export Function ---
-        function exportDashboard() {
-            const element = document.getElementById('dashboard-content');
-            const opt = {
-                margin:       0.5,
-                filename:     'DataPulse_Report.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: true },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-
-        // --- 5. APEXCHARTS INTEGRATION ---
-        const barData = JSON.parse('{{ bar_data|safe|escapejs }}' || '{"labels":[], "values":[], "title":""}');
-        const pieData = JSON.parse('{{ pie_data|safe|escapejs }}' || '{"labels":[], "values":[], "title":""}');
-        const trendData = JSON.parse('{{ trend_data|safe|escapejs }}' || '{"labels":[], "values":[], "title":""}');
-
-        const commonOptions = {
-            chart: { background: 'transparent', toolbar: { show: false }, animations: { enabled: true, easing: 'easeinout', speed: 800 } },
-            theme: { mode: 'dark' },
-            grid: { borderColor: 'rgba(56, 189, 248, 0.1)', strokeDashArray: 4 },
-            tooltip: { theme: 'dark', style: { fontSize: '14px', fontFamily: 'Inter' }, marker: { show: true } }
+        // Backend data injected by Django template engine
+        const BACKEND_DATA = {
+            fileName: '{{ file_name|escapejs }}',
+            barData: JSON.parse('{{ bar_data|escapejs }}'),
+            pieData: JSON.parse('{{ pie_data|escapejs }}'),
+            trendData: JSON.parse('{{ trend_data|escapejs }}'),
+            kpiMetrics: JSON.parse('{{ kpi_metrics|escapejs }}'),
+            anomalyData: JSON.parse('{{ anomaly_data|escapejs }}'),
+            anomalyScatter: JSON.parse('{{ anomaly_scatter|escapejs }}'),
+            corrMatrix: JSON.parse('{{ corr_matrix|escapejs }}' || 'null'),
+            corrColumns: JSON.parse('{{ corr_columns|escapejs }}'),
+            dataJson: JSON.parse('{{ data_json|escapejs }}'),
+            numericCols: JSON.parse('{{ numeric_cols|escapejs }}'),
+            categoricalCols: JSON.parse('{{ categorical_cols|escapejs }}'),
+            primaryNum: '{{ primary_num|escapejs }}',
+            primaryCat: '{{ primary_cat|escapejs }}',
+            dateCat: '{{ date_col|escapejs }}',
         };
-
-        if (trendData.labels && trendData.labels.length > 0) {
-            const trendOptions = {
-                ...commonOptions,
-                series: [{ name: 'Value', data: trendData.values }],
-                chart: { type: 'area', height: 350 },
-                title: { text: trendData.title, align: 'left', style: { color: '#f8fafc', fontSize: '16px', fontWeight: 'bold' } },
-                colors: ['#ff007c'],
-                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.1, stops: [0, 90, 100] } },
-                dataLabels: { enabled: false },
-                stroke: { curve: 'smooth', width: 3 },
-                xaxis: { categories: trendData.labels, labels: { style: { colors: '#94a3b8' } } },
-                yaxis: { labels: { style: { colors: '#94a3b8' }, formatter: (v) => { return v ? v.toLocaleString() : '0' } } }
-            };
-            new ApexCharts(document.querySelector("#trend-chart-container"), trendOptions).render();
-        } else {
-            document.getElementById('trend-chart-container').style.display = 'none';
-        }
-
-        if (barData.labels && barData.labels.length > 0) {
-            const barOptions = {
-                ...commonOptions,
-                series: [{ name: 'Total', data: barData.values }],
-                chart: { type: 'bar', height: 300 },
-                title: { text: barData.title, align: 'left', style: { color: '#f8fafc', fontSize: '16px', fontWeight: 'bold' } },
-                colors: ['#00f2fe'],
-                plotOptions: { bar: { borderRadius: 6, columnWidth: '45%', distributed: true } },
-                dataLabels: { enabled: false },
-                xaxis: { categories: barData.labels, labels: { style: { colors: '#94a3b8' } } },
-                yaxis: { labels: { style: { colors: '#94a3b8' }, formatter: (v) => { return v ? v.toLocaleString() : '0' } } },
-                legend: { show: false }
-            };
-            new ApexCharts(document.querySelector("#bar-chart-container"), barOptions).render();
-        } else {
-             document.getElementById('bar-chart-container').style.display = 'none';
-        }
-
-        if (pieData.labels && pieData.labels.length > 0) {
-            const donutOptions = {
-                ...commonOptions,
-                series: pieData.values,
-                labels: pieData.labels,
-                chart: { type: 'donut', height: 320 },
-                title: { text: pieData.title, align: 'left', style: { color: '#f8fafc', fontSize: '16px', fontWeight: 'bold' } },
-                colors: ['#ff007c', '#00f2fe', '#a855f7', '#facc15', '#10b981'],
-                plotOptions: { pie: { donut: { size: '65%', labels: { show: true, name: { color: '#94a3b8' }, value: { color: '#f8fafc', fontSize: '24px', fontWeight: 'bold' } } } } },
-                stroke: { show: true, colors: ['#0f172a'], width: 2 },
-                legend: { position: 'bottom', labels: { colors: '#94a3b8' } }
-            };
-            new ApexCharts(document.querySelector("#pie-chart-container"), donutOptions).render();
-        } else {
-             document.getElementById('pie-chart-container').style.display = 'none';
-        }
     </script>
+
+    <!-- Modular JavaScript -->
+    <script src="{% static 'script.js' %}?v=10"></script>
+    <script src="{% static 'charts.js' %}?v=10"></script>
+    <script src="{% static 'pdf_export.js' %}?v=10"></script>
+
 </body>
 </html>
