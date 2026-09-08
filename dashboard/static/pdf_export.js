@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   DATAPULSE — MODULAR PDF EXPORT SYSTEM
-   Selective export with html2pdf.js
+   DATAPULSE — SERVER-SIDE PDF EXPORT SYSTEM
+   Sends data to backend for real Matplotlib chart rendering
+   and premium ReportLab PDF generation
    ═══════════════════════════════════════════════════════════════ */
 
 // ═══════════════════════════════════════════════════════════════
@@ -32,7 +33,52 @@ document.addEventListener('keydown', (e) => {
 
 
 // ═══════════════════════════════════════════════════════════════
-// PDF GENERATION
+// LOADING OVERLAY
+// ═══════════════════════════════════════════════════════════════
+
+function showPDFLoading() {
+    const overlay = document.getElementById('pdf-loading-overlay');
+    if (overlay) {
+        overlay.classList.add('active');
+        // Animate progress steps
+        _animateProgressSteps();
+    }
+}
+
+function hidePDFLoading() {
+    const overlay = document.getElementById('pdf-loading-overlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
+function _animateProgressSteps() {
+    const steps = document.querySelectorAll('.pdf-progress-step');
+    steps.forEach((step, i) => {
+        step.classList.remove('active', 'done');
+    });
+
+    let currentStep = 0;
+    const interval = setInterval(() => {
+        if (currentStep > 0 && currentStep <= steps.length) {
+            steps[currentStep - 1].classList.remove('active');
+            steps[currentStep - 1].classList.add('done');
+        }
+        if (currentStep < steps.length) {
+            steps[currentStep].classList.add('active');
+            currentStep++;
+        } else {
+            clearInterval(interval);
+        }
+    }, 1200);
+
+    // Store interval ID to clear on hide
+    window._pdfProgressInterval = interval;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// PDF GENERATION (Server-Side)
 // ═══════════════════════════════════════════════════════════════
 
 function generatePDF() {
@@ -48,172 +94,83 @@ function generatePDF() {
         table: document.getElementById('exp-table').checked,
     };
 
-    // Build the export container
-    const exportDiv = document.createElement('div');
-    exportDiv.style.cssText = 'background: #0a0e17; padding: 30px; color: #f1f5f9; font-family: Inter, sans-serif;';
-
-    // Header
-    exportDiv.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid rgba(168,85,247,0.3); padding-bottom: 20px;">
-            <h1 style="font-size: 28px; color: #f1f5f9; margin-bottom: 5px;">
-                Data<span style="color: #a855f7;">Pulse</span> Analytics Report
-            </h1>
-            <p style="color: #94a3b8; font-size: 13px;">
-                Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                &nbsp;|&nbsp; File: ${BACKEND_DATA.fileName}
-            </p>
-        </div>
-    `;
-
-    // AI Summary
-    if (selections.summary) {
-        const aiText = document.getElementById('ai-text-container');
-        if (aiText) {
-            exportDiv.innerHTML += `
-                <div style="margin-bottom: 25px; padding: 20px; border: 1px solid rgba(168,85,247,0.2); border-radius: 12px; background: rgba(168,85,247,0.05);">
-                    <h3 style="color: #a855f7; font-size: 16px; margin-bottom: 12px;">
-                        ✦ Executive AI Summary
-                    </h3>
-                    <div style="color: #94a3b8; font-size: 13px; line-height: 1.8;">
-                        ${aiText.innerHTML}
-                    </div>
-                </div>
-            `;
-        }
+    // Check that at least one section is selected
+    const hasSelection = Object.values(selections).some(v => v);
+    if (!hasSelection) {
+        alert('Please select at least one section to include in the report.');
+        return;
     }
 
-    // KPI Metrics
-    if (selections.kpi) {
-        const m = BACKEND_DATA.kpiMetrics;
-        exportDiv.innerHTML += `
-            <div style="margin-bottom: 25px;">
-                <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 12px;">📊 Key Performance Indicators</h3>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
-                    <div style="padding: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; text-align: center; background: rgba(0,0,0,0.3);">
-                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Total Sum</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #f1f5f9;">${Number(m.total).toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
-                    </div>
-                    <div style="padding: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; text-align: center; background: rgba(0,0,0,0.3);">
-                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Average</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #f1f5f9;">${Number(m.mean).toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
-                    </div>
-                    <div style="padding: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; text-align: center; background: rgba(0,0,0,0.3);">
-                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Median</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #f1f5f9;">${Number(m.median).toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
-                    </div>
-                    <div style="padding: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; text-align: center; background: rgba(0,0,0,0.3);">
-                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Std Dev</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #f1f5f9;">${Number(m.std).toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Charts — clone from DOM
-    const chartMap = {
-        trend: 'trend-chart-container',
-        bar: 'bar-chart-container',
-        pie: 'pie-chart-container',
-    };
-
-    for (const [key, containerId] of Object.entries(chartMap)) {
-        if (selections[key]) {
-            const original = document.getElementById(containerId);
-            if (original && original.style.display !== 'none') {
-                const clone = original.cloneNode(true);
-                clone.style.marginBottom = '25px';
-                clone.style.padding = '20px';
-                clone.style.border = '1px solid rgba(255,255,255,0.08)';
-                clone.style.borderRadius = '12px';
-                clone.style.background = 'rgba(0,0,0,0.3)';
-                exportDiv.appendChild(clone);
-            }
-        }
-    }
-
-    // Anomaly section
-    if (selections.anomaly) {
-        const anomalyContainer = document.getElementById('anomaly-scatter-container');
-        const anomalySummary = document.getElementById('anomaly-summary');
-        if (anomalySummary) {
-            const summClone = anomalySummary.cloneNode(true);
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'margin-bottom: 25px;';
-            wrapper.innerHTML = '<h3 style="color: #ef4444; font-size: 16px; margin-bottom: 12px;">⚠ Anomaly Detection Report</h3>';
-            wrapper.appendChild(summClone);
-            if (anomalyContainer) {
-                const chartClone = anomalyContainer.cloneNode(true);
-                chartClone.style.marginTop = '12px';
-                wrapper.appendChild(chartClone);
-            }
-            exportDiv.appendChild(wrapper);
-        }
-    }
-
-    // Correlation section
-    if (selections.correlation) {
-        const heatmapContainer = document.getElementById('heatmap-container');
-        const corrSummary = document.getElementById('corr-summary-text');
-        if (heatmapContainer) {
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'margin-bottom: 25px;';
-            wrapper.innerHTML = '<h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 12px;">🔗 Correlation Analysis</h3>';
-            const chartClone = heatmapContainer.cloneNode(true);
-            wrapper.appendChild(chartClone);
-            if (corrSummary) {
-                wrapper.innerHTML += `<div style="margin-top: 12px; padding: 14px; border-left: 3px solid #38bdf8; background: rgba(56,189,248,0.05); border-radius: 8px; font-size: 13px; color: #94a3b8;">${corrSummary.innerHTML}</div>`;
-            }
-            exportDiv.appendChild(wrapper);
-        }
-    }
-
-    // Data Table
-    if (selections.table) {
-        const tableSection = document.getElementById('data-table-section');
-        if (tableSection) {
-            const clone = tableSection.cloneNode(true);
-            clone.style.marginBottom = '25px';
-            exportDiv.appendChild(clone);
-        }
-    }
-
-    // Footer
-    exportDiv.innerHTML += `
-        <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 20px;">
-            <p style="color: #64748b; font-size: 11px;">
-                Report generated by DataPulse Analytics Engine &nbsp;|&nbsp; ${new Date().getFullYear()}
-            </p>
-        </div>
-    `;
-
-    // Generate PDF
+    // Close modal and show loading overlay
     closeExportModal();
+    showPDFLoading();
 
-    const opt = {
-        margin: [0.3, 0.3, 0.3, 0.3],
-        filename: `DataPulse_Report_${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#0a0e17',
-        },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    // Get the AI insights text from the DOM
+    const aiTextEl = document.getElementById('ai-text-container');
+    const aiInsights = aiTextEl ? aiTextEl.innerHTML : '';
+
+    // Get the correlation summary text from the DOM
+    const corrSummaryEl = document.getElementById('corr-summary-text');
+    const corrSummary = corrSummaryEl ? corrSummaryEl.innerHTML : '';
+
+    // Build the payload with all data the backend needs
+    const payload = {
+        selections: selections,
+        file_name: BACKEND_DATA.fileName,
+        kpi_metrics: BACKEND_DATA.kpiMetrics,
+        bar_data: BACKEND_DATA.barData,
+        pie_data: BACKEND_DATA.pieData,
+        trend_data: BACKEND_DATA.trendData,
+        anomaly_data: BACKEND_DATA.anomalyData,
+        anomaly_scatter: BACKEND_DATA.anomalyScatter,
+        corr_matrix: BACKEND_DATA.corrMatrix,
+        corr_columns: BACKEND_DATA.corrColumns,
+        corr_summary: corrSummary,
+        ai_insights: aiInsights,
+        data_json: BACKEND_DATA.dataJson,
+        primary_num: BACKEND_DATA.primaryNum,
+        total_rows: document.querySelector('.counter[data-target]')
+            ? parseInt(document.querySelector('.counter[data-target]').getAttribute('data-target'))
+            : BACKEND_DATA.dataJson.length,
+        total_cols: BACKEND_DATA.numericCols.length + BACKEND_DATA.categoricalCols.length,
     };
 
-    // Temporarily append to body for rendering
-    exportDiv.style.position = 'fixed';
-    exportDiv.style.left = '-9999px';
-    exportDiv.style.top = '0';
-    exportDiv.style.width = '1100px';
-    document.body.appendChild(exportDiv);
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-    html2pdf().set(opt).from(exportDiv).save().then(() => {
-        document.body.removeChild(exportDiv);
-    }).catch(() => {
-        document.body.removeChild(exportDiv);
+    // Send to backend
+    fetch('/api/export-pdf/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify(payload),
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || 'PDF generation failed');
+            });
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `DataPulse_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        hidePDFLoading();
+    })
+    .catch(error => {
+        hidePDFLoading();
+        console.error('PDF export error:', error);
+        alert('❌ PDF generation failed: ' + error.message);
     });
 }

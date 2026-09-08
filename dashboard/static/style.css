@@ -925,6 +925,7 @@ body {
     font-size: 28px;
     font-weight: 800;
     background: linear-gradient(90deg, #fff, var(--text-muted));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     line-height: 1;
@@ -1884,4 +1885,145 @@ body {
     .hero-logo { font-size: 36px; }
     .comparison-grid { grid-template-columns: 1fr; }
     .whatif-controls { grid-template-columns: 1fr; }
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   PDF LOADING OVERLAY
+   ════════════════════════════════════════════════════════════════ */
+
+.pdf-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(3, 4, 9, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pdf-loading-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.pdf-loading-content {
+    text-align: center;
+    max-width: 420px;
+}
+
+.pdf-loading-spinner {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 28px auto;
+}
+
+.spinner-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 3px solid rgba(168, 85, 247, 0.12);
+    border-top: 3px solid var(--neon-accent);
+    border-right: 3px solid rgba(56, 189, 248, 0.6);
+    border-radius: 50%;
+    animation: spinnerRotate 1.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+}
+
+.pdf-icon-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    color: var(--neon-accent);
+    animation: pdfPulse 2s ease-in-out infinite;
+}
+
+@keyframes spinnerRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pdfPulse {
+    0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+}
+
+.pdf-loading-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+}
+
+.pdf-loading-subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+}
+
+.pdf-progress-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+}
+
+.pdf-progress-step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--text-dim);
+    font-size: 13px;
+    transition: all 0.5s ease;
+}
+
+.pdf-progress-step i {
+    font-size: 15px;
+    width: 22px;
+    text-align: center;
+    transition: all 0.4s ease;
+}
+
+.pdf-progress-step.active {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: rgba(168, 85, 247, 0.3);
+    color: var(--text-main);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.08);
+}
+
+.pdf-progress-step.active i {
+    color: var(--neon-accent);
+    animation: stepPulse 1s ease-in-out infinite;
+}
+
+.pdf-progress-step.done {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.2);
+    color: var(--neon-green);
+}
+
+.pdf-progress-step.done i::before {
+    content: "\f00c";  /* fa-check */
+}
+
+@keyframes stepPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
 }

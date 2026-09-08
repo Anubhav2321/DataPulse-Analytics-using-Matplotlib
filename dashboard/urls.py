@@ -6,4 +6,5 @@ urlpatterns = [
     path('api/query/', views.api_query, name='api_query'),
     path('api/whatif/', views.api_whatif, name='api_whatif'),
     path('api/correlation-summary/', views.api_correlation_summary, name='api_correlation_summary'),
+    path('api/export-pdf/', views.api_export_pdf, name='api_export_pdf'),
 ]
